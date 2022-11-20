@@ -1,0 +1,117 @@
+var id_sheet = "15V-QgdrHLDobkDO2ixNmsff2S0reDNniKvtJRLfwkBk";
+var sh_name01 = "users";
+var ss = SpreadsheetApp.openById(id_sheet);
+var sheet = ss.getSheetByName(sh_name01);
+var i=1;
+var j=1;
+
+function doGet(e){
+//  to verify username
+  if (e.parameter.data !== undefined){
+    var username = String(e.parameter.data);
+    var range01="A"+String(i)
+    var uname_sheet = String(sheet.getRange(range01).getValue());
+    while(uname_sheet!=="0"){
+      i+=1;
+      //Logger.log(i);
+      range01="A"+String(i);
+      uname_sheet = String(sheet.getRange(range01).getValue());
+    if(username==uname_sheet){
+      return ContentService.createTextOutput(String(i));
+    }
+    if(uname_sheet=="0"){
+      return ContentService.createTextOutput(String(0));
+    }
+    }
+  }
+
+  // to verify password
+  if (e.parameter.passrow !== undefined){
+    var row_pass = String(e.parameter.passrow);
+    var range02 = "B"+String(row_pass);
+    var pass_sheet = String(sheet.getRange(range02).getValue());
+    return ContentService.createTextOutput(String(pass_sheet));
+  }
+  
+  // to save new username
+  if (e.parameter.newuser !== undefined){
+    var newusername = String(e.parameter.newuser);
+    var range03="A"+String(j)
+    var newuname_sheet = String(sheet.getRange(range03).getValue());
+    do{
+      j+=1;
+      //Logger.log(i);
+      range03="A"+String(j)
+      newuname_sheet = String(sheet.getRange(range03).getValue());
+    }while(newuname_sheet!=="0");
+    sheet.getRange(range03).setValue(newusername);
+    j+=1;
+    range03="A"+String(j);
+    sheet.getRange(range03).setValue(0);
+    return ContentService.createTextOutput(String(j-1));
+    }
+  
+  // to save new password
+  if (e.parameter.newpassrow !== undefined && e.parameter.newpass!==undefined){
+    var row_newpass = String(e.parameter.newpassrow);
+    var newpassstr = String(e.parameter.newpass);
+    var range04 = "B"+String(row_newpass);
+    sheet.getRange(range04).setValue(newpassstr)
+    sheet.getRange("C"+String(row_newpass)).setValue(15000);
+    var ss2 = SpreadsheetApp.openById(id_sheet);
+    username2 = String(sheet.getRange("A"+String(row_newpass)).getValue());
+    ss2.insertSheet(String(username2));
+    var sheet2 = ss.getSheetByName(String(username2));
+    sheet2.getRange("A1:D1").setValues([["Time","Action","Amount","Balance"]]);
+    sheet2.getRange("A2:D2").setValues([["-","Start","15000","15000"]]);
+  }
+
+  // to read balance amount
+  if(e.parameter.user_row!==undefined){
+    var row2 = e.parameter.user_row;
+    bal = sheet.getRange("C"+String(row2)).getValue();
+    return ContentService.createTextOutput(String(bal));
+  }
+
+  //to update balance amount
+  if (e.parameter.user_row_val !== undefined && e.parameter.act!==undefined && e.parameter.amount!==undefined && e.parameter.new_bal!==undefined && e.parameter.ttime!==undefined){
+    var row3 = String(e.parameter.user_row_val);
+    var up_bal = String(e.parameter.new_bal);
+    var act_per = String(e.parameter.act);
+    var amt = String(e.parameter.amount);
+    var timestr = String(e.parameter.ttime)
+
+    var range05 = "C"+String(row3);
+    //var old_bal = sheet.getRange(range05).getValue();
+    sheet.getRange(range05).setValue(up_bal)
+    var ss3 = SpreadsheetApp.openById(id_sheet);
+    var username3 = String(sheet.getRange("A"+String(row3)).getValue());
+    var sheet2 = ss3.getSheetByName(String(username3));
+    sheet2.appendRow([timestr,act_per,amt,up_bal]);
+  }
+
+  // to read transaction history
+  if(e.parameter.row_of_user!==undefined){
+    var row4 = String(e.parameter.row_of_user);
+    var username4 = String(sheet.getRange("A"+String(row4)).getValue());
+    var ss4 = SpreadsheetApp.openById(id_sheet);
+    var sheet3 = ss4.getSheetByName(String(username4));
+    var values = sheet3.getDataRange().getValues();
+    var trans_hist = "";
+    for(var m=1;m<=values.length-1;m++)
+    {
+      for(var n=0;n<values[0].length;n++)
+      {
+        if(m==1 && n==0)
+        {
+          trans_hist = trans_hist + " DATE\t| Transaction\t| Amount\t| Balance \t|\n"
+        }
+        trans_hist = trans_hist + values[m][n] + "\t\t|";
+      }
+      trans_hist = trans_hist + "\n";
+    }
+    return ContentService.createTextOutput(String(trans_hist));
+
+  }
+
+}
